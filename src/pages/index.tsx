@@ -2,15 +2,26 @@ import { useState } from "react";
 import { SEO } from "@/components/SEO";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, PackageOpen, PackagePlus, ClipboardCheck, History } from "lucide-react";
+import { FileText, PackageOpen, PackagePlus, ClipboardCheck, History, Trash2 } from "lucide-react";
 import { PrintJobForm } from "@/components/forms/PrintJobForm";
 import { StockOutForm } from "@/components/forms/StockOutForm";
 import { StockInForm } from "@/components/forms/StockInForm";
 import { AuditSessionForm } from "@/components/forms/AuditSessionForm";
 import { HistoryLog } from "@/components/HistoryLog";
+import { Button } from "@/components/ui/button";
+import { clearAssets } from "@/lib/assetStore";
+import { clearHistory } from "@/lib/historyStore";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("print");
+
+  const handleClearData = () => {
+    if (confirm("Bạn có chắc chắn muốn xóa toàn bộ tài sản và lịch sử để làm mới hệ thống?")) {
+      clearAssets();
+      clearHistory();
+      window.location.reload();
+    }
+  };
 
   return (
     <>
@@ -21,13 +32,23 @@ export default function Home() {
       <main className="min-h-screen bg-background">
         <div className="container py-8">
           {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-4xl font-bold font-heading text-primary mb-2">
-              Simple RFID Simulator
-            </h1>
-            <p className="text-muted-foreground text-lg">
-              Công cụ giả lập dữ liệu đầu vào cho hệ thống Simple RFID
-            </p>
+          <div className="mb-8 flex flex-col sm:flex-row gap-4 justify-between items-start">
+            <div>
+              <h1 className="text-4xl font-bold font-heading text-primary mb-2">
+                Simple RFID Simulator
+              </h1>
+              <p className="text-muted-foreground text-lg">
+                Công cụ giả lập dữ liệu đầu vào cho hệ thống Simple RFID
+              </p>
+            </div>
+            <Button 
+              variant="outline" 
+              className="border-destructive/50 text-destructive hover:bg-destructive hover:text-white transition-colors" 
+              onClick={handleClearData}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Làm Mới Dữ Liệu
+            </Button>
           </div>
 
           {/* Main Content */}
