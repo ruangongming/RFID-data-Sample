@@ -96,12 +96,10 @@ export interface AuditSessionResponse {
 }
 
 // History Log Types
-export type SessionType = "print" | "stockout" | "stockin" | "audit";
+export type SessionType = "print_job" | "stockout" | "stockin" | "audit";
 
 export interface HistoryEntry {
-  id: string;
-  session_code: string;
-  type: SessionType;
+  sessionType: string;
   timestamp: string;
   status: "success" | "error";
   request: any;
