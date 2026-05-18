@@ -3,6 +3,7 @@ import { SEO } from "@/components/SEO";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText, PackageOpen, PackagePlus, ClipboardCheck, History } from "lucide-react";
+import { PrintJobForm } from "@/components/forms/PrintJobForm";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("print");
@@ -59,7 +60,7 @@ export default function Home() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground">Print Job Form sẽ được thêm ở đây...</p>
+                  <PrintJobForm />
                 </CardContent>
               </Card>
             </TabsContent>
