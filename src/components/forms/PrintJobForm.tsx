@@ -1,54 +1,71 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent } from "@/components/ui/card";
-import { PlusCircle, Trash2, Send } from "lucide-react";
+import { Send, Sparkles, Package } from "lucide-react";
 import { JSONPreview } from "@/components/JSONPreview";
 import { StatusBadge } from "@/components/StatusBadge";
 import { saveToHistory } from "@/lib/historyStore";
-import type { PrintJobRequest, PrintJobLabel, PrintJobResponse } from "@/types/api";
+import { generateAssets, addAssets, getAssets, type Asset } from "@/lib/assetStore";
+import type { PrintJobRequest, PrintJobResponse } from "@/types/api";
 
 export function PrintJobForm() {
+  const [quantity, setQuantity] = useState<number>(10);
   const [formData, setFormData] = useState<PrintJobRequest>({
     session_print: "PE00001",
     session_name: "",
     date_created: new Date().toISOString().split("T")[0],
     select_temp: "template01",
     rfid_enable: true,
-    labels: [
-      { name: "", prod_code: "", serial: "", epc: "" }
-    ]
+    labels: []
   });
 
+  const [assets, setAssets] = useState<Asset[]>([]);
+  const [totalAssets, setTotalAssets] = useState<number>(0);
   const [response, setResponse] = useState<PrintJobResponse | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const addLabel = () => {
-    setFormData({
-      ...formData,
-      labels: [...formData.labels, { name: "", prod_code: "", serial: "", epc: "" }]
-    });
-  };
+  // Load total assets count on mount
+  useEffect(() => {
+    setTotalAssets(getAssets().length);
+  }, []);
 
-  const removeLabel = (index: number) => {
-    if (formData.labels.length > 1) {
-      setFormData({
-        ...formData,
-        labels: formData.labels.filter((_, i) => i !== index)
-      });
+  const handleGenerateAssets = () => {
+    if (quantity < 1 || !formData.session_print) {
+      alert("Vui lòng nhập số lượng hợp lệ và mã phiên in");
+      return;
     }
-  };
 
-  const updateLabel = (index: number, field: keyof PrintJobLabel, value: string) => {
-    const newLabels = [...formData.labels];
-    newLabels[index] = { ...newLabels[index], [field]: value };
-    setFormData({ ...formData, labels: newLabels });
+    // Generate assets with empty EPC
+    const newAssets = generateAssets(
+      quantity,
+      formData.session_print,
+      formData.session_name || "Tài sản"
+    );
+
+    setAssets(newAssets);
+
+    // Convert to labels format for API
+    const labels = newAssets.map(asset => ({
+      name: asset.name,
+      prod_code: asset.prod_code,
+      serial: asset.serial,
+      epc: "" // Empty - Simple RFID will generate
+    }));
+
+    setFormData({ ...formData, labels });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (formData.labels.length === 0) {
+      alert("Vui lòng tạo phiên in trước khi gửi");
+      return;
+    }
+
     setIsSubmitting(true);
     setResponse(null);
 
@@ -61,6 +78,12 @@ export function PrintJobForm() {
 
       const data = await res.json();
       setResponse(data);
+      
+      // If success, save assets to store
+      if (data.respcode === "0" && assets.length > 0) {
+        addAssets(assets);
+        setTotalAssets(getAssets().length);
+      }
       
       // Save to history
       saveToHistory({
@@ -93,6 +116,14 @@ export function PrintJobForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Asset Count Info */}
+      {totalAssets > 0 && (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/30 px-4 py-2 rounded-md">
+          <Package className="h-4 w-4" />
+          <span>Tổng số tài sản đã tạo: <span className="font-semibold font-mono">{totalAssets}</span></span>
+        </div>
+      )}
+
       {/* Session Info */}
       <Card>
         <CardContent className="pt-6 space-y-4">
@@ -155,87 +186,95 @@ export function PrintJobForm() {
         </CardContent>
       </Card>
 
-      {/* Labels List */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-heading font-semibold">Danh Sách Nhãn</h3>
-          <Button type="button" onClick={addLabel} variant="outline" size="sm">
-            <PlusCircle className="h-4 w-4 mr-2" />
-            Thêm Nhãn
-          </Button>
+      {/* Generate Assets Section */}
+      <Card className="border-accent/30">
+        <CardContent className="pt-6 space-y-4">
+          <h3 className="text-lg font-heading font-semibold">Tạo Phiên In/Encode</h3>
+          
+          <div className="flex gap-3 items-end">
+            <div className="flex-1 space-y-2">
+              <Label htmlFor="quantity">Số Lượng Tài Sản</Label>
+              <Input
+                id="quantity"
+                type="number"
+                min="1"
+                value={quantity}
+                onChange={(e) => setQuantity(parseInt(e.target.value) || 0)}
+                placeholder="Nhập số lượng"
+              />
+            </div>
+            <Button
+              type="button"
+              onClick={handleGenerateAssets}
+              size="lg"
+              className="bg-accent hover:bg-accent/90"
+            >
+              <Sparkles className="h-4 w-4 mr-2" />
+              Tạo Phiên In
+            </Button>
+          </div>
+
+          <p className="text-sm text-muted-foreground">
+            Nhập số lượng và bấm "Tạo phiên in" để tự động sinh danh sách tài sản với EPC rỗng. 
+            Simple RFID sẽ tự động sinh EPC sau khi nhận được phiên in.
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Generated Labels Display */}
+      {formData.labels.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-heading font-semibold">
+              Danh Sách Nhãn ({formData.labels.length})
+            </h3>
+          </div>
+
+          <div className="border rounded-md overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/50 border-b">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-semibold">#</th>
+                    <th className="px-4 py-3 text-left font-semibold">Tên Sản Phẩm</th>
+                    <th className="px-4 py-3 text-left font-semibold">Mã Sản Phẩm</th>
+                    <th className="px-4 py-3 text-left font-semibold">Serial</th>
+                    <th className="px-4 py-3 text-left font-semibold">EPC</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {formData.labels.map((label, index) => (
+                    <tr key={index} className="hover:bg-muted/20">
+                      <td className="px-4 py-3 font-mono text-muted-foreground">{index + 1}</td>
+                      <td className="px-4 py-3">{label.name}</td>
+                      <td className="px-4 py-3 font-mono text-xs">{label.prod_code}</td>
+                      <td className="px-4 py-3 font-mono">{label.serial}</td>
+                      <td className="px-4 py-3 text-muted-foreground italic">
+                        {label.epc || "(rỗng - Simple RFID sẽ sinh)"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
-
-        <div className="space-y-3">
-          {formData.labels.map((label, index) => (
-            <Card key={index}>
-              <CardContent className="pt-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
-                  <div className="space-y-1">
-                    <Label className="text-xs">Tên Sản Phẩm</Label>
-                    <Input
-                      value={label.name}
-                      onChange={(e) => updateLabel(index, "name", e.target.value)}
-                      placeholder="Elmich Workstation Tower"
-                      className="h-9"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <Label className="text-xs">Mã Sản Phẩm</Label>
-                    <Input
-                      value={label.prod_code}
-                      onChange={(e) => updateLabel(index, "prod_code", e.target.value)}
-                      placeholder="VN-450558422995"
-                      className="h-9"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <Label className="text-xs">Serial</Label>
-                    <Input
-                      value={label.serial}
-                      onChange={(e) => updateLabel(index, "serial", e.target.value)}
-                      placeholder="-1"
-                      className="h-9"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <Label className="text-xs">EPC</Label>
-                    <Input
-                      value={label.epc}
-                      onChange={(e) => updateLabel(index, "epc", e.target.value)}
-                      placeholder="E1"
-                      className="h-9"
-                    />
-                  </div>
-
-                  <div className="flex items-end">
-                    <Button
-                      type="button"
-                      onClick={() => removeLabel(index)}
-                      variant="ghost"
-                      size="sm"
-                      className="h-9 w-full text-destructive hover:text-destructive hover:bg-destructive/10"
-                      disabled={formData.labels.length === 1}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
+      )}
 
       {/* JSON Preview */}
-      <JSONPreview title="Request JSON" data={formData} />
+      {formData.labels.length > 0 && (
+        <JSONPreview title="Request JSON" data={formData} />
+      )}
 
       {/* Submit Button */}
-      <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
+      <Button 
+        type="submit" 
+        size="lg" 
+        className="w-full" 
+        disabled={isSubmitting || formData.labels.length === 0}
+      >
         <Send className="h-4 w-4 mr-2" />
-        {isSubmitting ? "Đang gửi..." : "Tạo Phiên In"}
+        {isSubmitting ? "Đang gửi..." : "Gửi API Tạo Phiên In"}
       </Button>
 
       {/* Response */}
@@ -252,8 +291,8 @@ export function PrintJobForm() {
               {JSON.stringify(response, null, 2)}
             </pre>
             {response.respcode === "0" && response.print_job_id && (
-              <p className="text-sm text-muted-foreground">
-                Print Job ID: <span className="font-mono font-semibold">{response.print_job_id}</span>
+              <p className="text-sm text-success">
+                ✓ Đã lưu {formData.labels.length} tài sản vào kho. Print Job ID: <span className="font-mono font-semibold">{response.print_job_id}</span>
               </p>
             )}
           </CardContent>
