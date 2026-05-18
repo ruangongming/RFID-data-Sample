@@ -3,7 +3,7 @@
 // Print Job API
 export interface PrintJobLabel {
   name: string;
-  prod_code: string;
+  asset_code: string;
   serial: string;
   epc: string;
 }
