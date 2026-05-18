@@ -1,6 +1,6 @@
 ---
 title: Design System & Layout Structure
-status: todo
+status: in_progress
 priority: urgent
 type: chore
 tags: [design, foundation]
@@ -13,10 +13,10 @@ position: 1
 Set up design system with technical/industrial color palette and typography. Create main layout with tab navigation for 4 simulation features + history.
 
 ## Checklist
-- [ ] Configure globals.css with color variables (slate primary, amber accent, technical palette)
-- [ ] Set up fonts in tailwind.config.ts (IBM Plex Sans, Rubik, JetBrains Mono)
-- [ ] Create main layout with tab navigation (5 tabs: Print, Stock Out, Stock In, Audit, History)
-- [ ] Create reusable form components (FormField, JSONPreview, StatusBadge)
+- [x] Configure globals.css with color variables (slate primary, amber accent, technical palette)
+- [x] Set up fonts in tailwind.config.ts (IBM Plex Sans, Rubik, JetBrains Mono)
+- [x] Create main layout with tab navigation (5 tabs: Print, Stock Out, Stock In, Audit, History)
+- [x] Create reusable form components (FormField, JSONPreview, StatusBadge)
 
 ## Acceptance
 - Tabs switch smoothly between 4 form types and history
