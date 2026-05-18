@@ -72,6 +72,7 @@ export function generateAssets(
 ): Asset[] {
   const assets: Asset[] = [];
   const timestamp = new Date().toISOString();
+  const batchId = Math.random().toString(36).substring(2, 6).toUpperCase();
   
   for (let i = 1; i <= count; i++) {
     const category = getRandomElement(ASSET_CATEGORIES);
@@ -79,7 +80,7 @@ export function generateAssets(
     const assetCode = generateRandomAssetCode(category.prefix);
     
     assets.push({
-      id: `${sessionCode}-${String(i).padStart(4, "0")}`,
+      id: `${sessionCode}-${batchId}-${String(i).padStart(4, "0")}`,
       name: assetName,
       asset_code: assetCode,
       serial: String(i).padStart(6, "0"),

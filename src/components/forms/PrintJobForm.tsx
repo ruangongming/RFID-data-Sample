@@ -16,7 +16,7 @@ export function PrintJobForm() {
   const [formData, setFormData] = useState<PrintJobRequest>({
     session_print: "PE00001",
     session_name: "",
-    date_created: new Date().toISOString().split("T")[0],
+    date_created: "",
     select_temp: "template01",
     rfid_enable: true,
     labels: []
@@ -30,6 +30,10 @@ export function PrintJobForm() {
   // Load total assets count on mount
   useEffect(() => {
     setTotalAssets(getAssets().length);
+    setFormData(prev => ({
+      ...prev,
+      date_created: new Date().toISOString().split("T")[0],
+    }));
   }, []);
 
   const handleGenerateAssets = () => {

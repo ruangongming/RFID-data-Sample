@@ -16,9 +16,9 @@ export function StockOutForm() {
   const [selectedAssetIds, setSelectedAssetIds] = useState<Set<string>>(new Set());
   
   const [formData, setFormData] = useState<StockOutRequest>({
-    stockout_code: "PXK-" + new Date().toISOString().split("T")[0].replace(/-/g, "") + "-0001",
+    stockout_code: "",
     stockout_name: "",
-    created_at: new Date().toISOString(),
+    created_at: "",
     warehouse_cd: "",
     warehouse_name: "",
     person_cd: "",
@@ -32,6 +32,12 @@ export function StockOutForm() {
 
   // Load available assets on mount and listen to updates
   useEffect(() => {
+    setFormData(prev => ({
+      ...prev,
+      stockout_code: "PXK-" + new Date().toISOString().split("T")[0].replace(/-/g, "") + "-0001",
+      created_at: new Date().toISOString(),
+    }));
+
     const loadAssets = () => {
       setAvailableAssets(getAssets());
     };
@@ -296,7 +302,7 @@ export function StockOutForm() {
                       }`}
                       onClick={() => toggleAssetSelection(asset.id)}
                     >
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                         <Checkbox
                           checked={selectedAssetIds.has(asset.id)}
                           onCheckedChange={() => toggleAssetSelection(asset.id)}

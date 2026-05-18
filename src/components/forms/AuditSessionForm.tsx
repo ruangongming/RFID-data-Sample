@@ -19,7 +19,7 @@ export function AuditSessionForm() {
     session_audit: "KK-00001",
     session_name: "",
     method: "0",
-    date_created: new Date().toISOString().split("T")[0],
+    date_created: "",
     user_request: "",
     department_info: "",
     store_info: "",
@@ -31,6 +31,11 @@ export function AuditSessionForm() {
 
   // Load available assets on mount and listen to updates
   useEffect(() => {
+    setFormData(prev => ({
+      ...prev,
+      date_created: new Date().toISOString().split("T")[0],
+    }));
+
     const loadAssets = () => {
       setAvailableAssets(getAssets());
     };
@@ -308,7 +313,7 @@ export function AuditSessionForm() {
                       }`}
                       onClick={() => toggleAssetSelection(asset.id)}
                     >
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                         <Checkbox
                           checked={selectedAssetIds.has(asset.id)}
                           onCheckedChange={() => toggleAssetSelection(asset.id)}
