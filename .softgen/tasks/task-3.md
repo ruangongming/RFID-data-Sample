@@ -1,6 +1,6 @@
 ---
 title: Stock Out Form
-status: todo
+status: done
 priority: high
 type: feature
 tags: [form, api]
@@ -10,18 +10,17 @@ position: 3
 ---
 
 ## Notes
-Form for creating warehouse exit notes. Includes stock out code, warehouse info, assigned person details, and asset list.
+Create form for warehouse exit notes. Includes metadata (code, name, datetime, warehouse info) and recipient info (person code/name, department). Dynamic item list with asset_id and EPC.
 
 ## Checklist
-- [ ] Create StockOutForm with fields: stockout_code, stockout_name, created_at
-- [ ] Add warehouse section (warehouse_cd, warehouse_name)
-- [ ] Add assigned person section (person_cd, person_name, department)
-- [ ] Dynamic items list (asset_id, epc)
-- [ ] JSON preview and sample data generation
-- [ ] Submit to POST /api/integration/stockout_note
-- [ ] Display response with stockout_id
+- [x] Create StockOutForm with metadata fields
+- [x] Add warehouse and recipient info sections
+- [x] Dynamic items list (asset_id, epc) with add/remove
+- [x] JSON preview and API submission
+- [x] Display response with stockout_id
 
 ## Acceptance
-- All sections clearly organized
+- Form data matches stockout API spec
+- Items list clearly organized
 - Generated JSON matches stockout API spec
 - Response shows stockout_id on success

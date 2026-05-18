@@ -1,6 +1,6 @@
 ---
 title: Design System & Layout Structure
-status: in_progress
+status: done
 priority: urgent
 type: chore
 tags: [design, foundation]
