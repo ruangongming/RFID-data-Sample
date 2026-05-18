@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { PlusCircle, Trash2, Send } from "lucide-react";
 import { JSONPreview } from "@/components/JSONPreview";
 import { StatusBadge } from "@/components/StatusBadge";
+import { saveToHistory } from "@/lib/historyStore";
 import type { StockInRequest, StockInItem, StockInResponse } from "@/types/api";
 
 export function StockInForm() {
@@ -62,11 +63,30 @@ export function StockInForm() {
 
       const data = await res.json();
       setResponse(data);
+      
+      // Save to history
+      saveToHistory({
+        sessionType: "stockin",
+        timestamp: new Date().toISOString(),
+        status: data.respcode === "0" ? "success" : "error",
+        request: formData,
+        response: data
+      });
     } catch (error) {
-      setResponse({
+      const errorResponse = {
         respcode: "-1",
         errmsg: error instanceof Error ? error.message : "Lỗi kết nối",
         stockin_id: ""
+      };
+      setResponse(errorResponse);
+      
+      // Save error to history
+      saveToHistory({
+        sessionType: "stockin",
+        timestamp: new Date().toISOString(),
+        status: "error",
+        request: formData,
+        response: errorResponse
       });
     } finally {
       setIsSubmitting(false);

@@ -7,6 +7,7 @@ import { PrintJobForm } from "@/components/forms/PrintJobForm";
 import { StockOutForm } from "@/components/forms/StockOutForm";
 import { StockInForm } from "@/components/forms/StockInForm";
 import { AuditSessionForm } from "@/components/forms/AuditSessionForm";
+import { HistoryLog } from "@/components/HistoryLog";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("print");
@@ -119,7 +120,7 @@ export default function Home() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground">History Log sẽ được thêm ở đây...</p>
+                  <HistoryLog />
                 </CardContent>
               </Card>
             </TabsContent>

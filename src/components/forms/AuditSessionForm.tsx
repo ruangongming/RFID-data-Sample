@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { PlusCircle, Trash2, Send } from "lucide-react";
 import { JSONPreview } from "@/components/JSONPreview";
 import { StatusBadge } from "@/components/StatusBadge";
+import { saveToHistory } from "@/lib/historyStore";
 import type { AuditSessionRequest, AuditItem, AuditSessionResponse } from "@/types/api";
 
 export function AuditSessionForm() {
@@ -61,11 +62,30 @@ export function AuditSessionForm() {
 
       const data = await res.json();
       setResponse(data);
+      
+      // Save to history
+      saveToHistory({
+        sessionType: "audit",
+        timestamp: new Date().toISOString(),
+        status: data.respcode === "0" ? "success" : "error",
+        request: formData,
+        response: data
+      });
     } catch (error) {
-      setResponse({
+      const errorResponse = {
         respcode: "-1",
         errmsg: error instanceof Error ? error.message : "Lỗi kết nối",
         audit_id: ""
+      };
+      setResponse(errorResponse);
+      
+      // Save error to history
+      saveToHistory({
+        sessionType: "audit",
+        timestamp: new Date().toISOString(),
+        status: "error",
+        request: formData,
+        response: errorResponse
       });
     } finally {
       setIsSubmitting(false);
