@@ -50,7 +50,7 @@ export function PrintJobForm() {
     // Convert to labels format for API
     const labels = newAssets.map(asset => ({
       name: asset.name,
-      prod_code: asset.prod_code,
+      asset_code: asset.asset_code,
       serial: asset.serial,
       epc: "" // Empty - Simple RFID will generate
     }));
@@ -236,8 +236,8 @@ export function PrintJobForm() {
                 <thead className="bg-muted/50 border-b">
                   <tr>
                     <th className="px-4 py-3 text-left font-semibold">#</th>
-                    <th className="px-4 py-3 text-left font-semibold">Tên Sản Phẩm</th>
-                    <th className="px-4 py-3 text-left font-semibold">Mã Sản Phẩm</th>
+                    <th className="px-4 py-3 text-left font-semibold">Tên Tài Sản</th>
+                    <th className="px-4 py-3 text-left font-semibold">Mã Tài Sản</th>
                     <th className="px-4 py-3 text-left font-semibold">Serial</th>
                     <th className="px-4 py-3 text-left font-semibold">EPC</th>
                   </tr>
@@ -247,7 +247,7 @@ export function PrintJobForm() {
                     <tr key={index} className="hover:bg-muted/20">
                       <td className="px-4 py-3 font-mono text-muted-foreground">{index + 1}</td>
                       <td className="px-4 py-3">{label.name}</td>
-                      <td className="px-4 py-3 font-mono text-xs">{label.prod_code}</td>
+                      <td className="px-4 py-3 font-mono text-xs">{label.asset_code}</td>
                       <td className="px-4 py-3 font-mono">{label.serial}</td>
                       <td className="px-4 py-3 text-muted-foreground italic">
                         {label.epc || "(rỗng - Simple RFID sẽ sinh)"}

@@ -274,7 +274,7 @@ export function StockInForm() {
                     <th className="px-4 py-3 text-left w-12"></th>
                     <th className="px-4 py-3 text-left font-semibold">ID Tài Sản</th>
                     <th className="px-4 py-3 text-left font-semibold">Tên</th>
-                    <th className="px-4 py-3 text-left font-semibold">Mã Sản Phẩm</th>
+                    <th className="px-4 py-3 text-left font-semibold">Mã Tài Sản</th>
                     <th className="px-4 py-3 text-left font-semibold">Serial</th>
                     <th className="px-4 py-3 text-left font-semibold">Phiên In</th>
                   </tr>
@@ -296,7 +296,7 @@ export function StockInForm() {
                       </td>
                       <td className="px-4 py-3 font-mono text-xs">{asset.id}</td>
                       <td className="px-4 py-3">{asset.name}</td>
-                      <td className="px-4 py-3 font-mono text-xs">{asset.prod_code}</td>
+                      <td className="px-4 py-3 font-mono text-xs">{asset.asset_code}</td>
                       <td className="px-4 py-3 font-mono">{asset.serial}</td>
                       <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
                         {asset.print_session}
