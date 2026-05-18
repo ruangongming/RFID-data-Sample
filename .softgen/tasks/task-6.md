@@ -1,6 +1,6 @@
 ---
 title: Asset Management System
-status: in_progress
+status: done
 priority: urgent
 type: feature
 tags: [storage, refactor]
@@ -15,10 +15,10 @@ Implement centralized asset storage system. Print job creates assets, other form
 ## Checklist
 - [x] Create assetStore utility with localStorage persistence
 - [x] Refactor PrintJobForm: add quantity input + "Tạo phiên in" button to auto-generate assets
-- [ ] Update StockOutForm to select assets from store (no manual entry)
-- [ ] Update StockInForm to select assets from store
-- [ ] Update AuditSessionForm with "Tạo nhanh" button (select all assets)
-- [ ] Display current asset count in forms
+- [x] Update StockOutForm to select assets from store (no manual entry)
+- [x] Update StockInForm to select assets from store
+- [x] Update AuditSessionForm with "Tạo nhanh" button (select all assets)
+- [x] Display current asset count in forms
 
 ## Acceptance
 - Print job generates N assets with empty EPC

@@ -1,15 +1,20 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { PlusCircle, Trash2, Send } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Send, Zap, Package } from "lucide-react";
 import { JSONPreview } from "@/components/JSONPreview";
 import { StatusBadge } from "@/components/StatusBadge";
 import { saveToHistory } from "@/lib/historyStore";
-import type { AuditSessionRequest, AuditItem, AuditSessionResponse } from "@/types/api";
+import { getAssets, type Asset } from "@/lib/assetStore";
+import type { AuditSessionRequest, AuditSessionResponse } from "@/types/api";
 
 export function AuditSessionForm() {
+  const [availableAssets, setAvailableAssets] = useState<Asset[]>([]);
+  const [selectedAssetIds, setSelectedAssetIds] = useState<Set<string>>(new Set());
+  
   const [formData, setFormData] = useState<AuditSessionRequest>({
     session_audit: "KK-00001",
     session_name: "",
@@ -18,38 +23,65 @@ export function AuditSessionForm() {
     user_request: "",
     department_info: "",
     store_info: "",
-    items: [
-      { asset_id: "", serial: "", epc: null }
-    ]
+    items: []
   });
 
   const [response, setResponse] = useState<AuditSessionResponse | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const addItem = () => {
-    setFormData({
-      ...formData,
-      items: [...formData.items, { asset_id: "", serial: "", epc: null }]
-    });
-  };
+  // Load available assets on mount
+  useEffect(() => {
+    const assets = getAssets();
+    setAvailableAssets(assets);
+  }, []);
 
-  const removeItem = (index: number) => {
-    if (formData.items.length > 1) {
-      setFormData({
-        ...formData,
-        items: formData.items.filter((_, i) => i !== index)
-      });
+  // Update items when selection changes
+  useEffect(() => {
+    const selectedAssets = availableAssets.filter(asset => selectedAssetIds.has(asset.id));
+    const items = selectedAssets.map(asset => ({
+      asset_id: asset.id,
+      serial: asset.serial,
+      epc: asset.epc || null
+    }));
+    setFormData(prev => ({ ...prev, items }));
+  }, [selectedAssetIds, availableAssets]);
+
+  const toggleAssetSelection = (assetId: string) => {
+    const newSelection = new Set(selectedAssetIds);
+    if (newSelection.has(assetId)) {
+      newSelection.delete(assetId);
+    } else {
+      newSelection.add(assetId);
     }
+    setSelectedAssetIds(newSelection);
   };
 
-  const updateItem = (index: number, field: keyof AuditItem, value: string) => {
-    const newItems = [...formData.items];
-    newItems[index] = { ...newItems[index], [field]: value === "" ? null : value };
-    setFormData({ ...formData, items: newItems });
+  const selectAll = () => {
+    setSelectedAssetIds(new Set(availableAssets.map(a => a.id)));
+  };
+
+  const clearSelection = () => {
+    setSelectedAssetIds(new Set());
+  };
+
+  const handleQuickCreate = () => {
+    if (availableAssets.length === 0) {
+      alert("Chưa có tài sản nào. Vui lòng tạo phiên in trước.");
+      return;
+    }
+    
+    // Select all assets automatically
+    selectAll();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (formData.items.length === 0) {
+      alert("Vui lòng chọn ít nhất 1 tài sản");
+      return;
+    }
+
     setIsSubmitting(true);
     setResponse(null);
 
@@ -94,6 +126,25 @@ export function AuditSessionForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Asset Count Info */}
+      <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/30 px-4 py-2 rounded-md">
+        <Package className="h-4 w-4" />
+        <span>
+          Tài sản có sẵn: <span className="font-semibold font-mono">{availableAssets.length}</span> 
+          {" | "}Đã chọn: <span className="font-semibold font-mono text-accent">{selectedAssetIds.size}</span>
+        </span>
+      </div>
+
+      {availableAssets.length === 0 && (
+        <Card className="border-amber-500/50 bg-amber-50/50">
+          <CardContent className="pt-6">
+            <p className="text-sm text-amber-700">
+              ⚠️ Chưa có tài sản nào. Vui lòng tạo phiên in trước để có danh sách tài sản.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Session Info */}
       <Card>
         <CardContent className="pt-6 space-y-4">
@@ -175,78 +226,119 @@ export function AuditSessionForm() {
         </CardContent>
       </Card>
 
-      {/* Items List */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-heading font-semibold">Danh Sách Tài Sản</h3>
-          <Button type="button" onClick={addItem} variant="outline" size="sm">
-            <PlusCircle className="h-4 w-4 mr-2" />
-            Thêm Tài Sản
-          </Button>
-        </div>
+      {/* Quick Create Button */}
+      {availableAssets.length > 0 && (
+        <Card className="border-success/30 bg-success/5">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-heading font-semibold text-success">Tạo Nhanh Phiên Kiểm Kê</h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Tự động chọn toàn bộ {availableAssets.length} tài sản từ phiên in
+                </p>
+              </div>
+              <Button
+                type="button"
+                onClick={handleQuickCreate}
+                className="bg-success hover:bg-success/90"
+              >
+                <Zap className="h-4 w-4 mr-2" />
+                Tạo Nhanh
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-        <div className="space-y-3">
-          {formData.items.map((item, index) => (
-            <Card key={index}>
-              <CardContent className="pt-4">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                  <div className="space-y-1">
-                    <Label className="text-xs">Mã Tài Sản *</Label>
-                    <Input
-                      value={item.asset_id}
-                      onChange={(e) => updateItem(index, "asset_id", e.target.value)}
-                      placeholder="THIAVANG-001"
-                      className="h-9"
-                      required
-                    />
-                  </div>
+      {/* Asset Selection */}
+      {availableAssets.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-heading font-semibold">
+              Chọn Tài Sản Kiểm Kê
+            </h3>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                onClick={selectAll}
+                variant="outline"
+                size="sm"
+              >
+                Chọn Tất Cả
+              </Button>
+              <Button
+                type="button"
+                onClick={clearSelection}
+                variant="outline"
+                size="sm"
+              >
+                Bỏ Chọn
+              </Button>
+            </div>
+          </div>
 
-                  <div className="space-y-1">
-                    <Label className="text-xs">Serial</Label>
-                    <Input
-                      value={item.serial || ""}
-                      onChange={(e) => updateItem(index, "serial", e.target.value)}
-                      placeholder="123"
-                      className="h-9"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <Label className="text-xs">EPC</Label>
-                    <Input
-                      value={item.epc || ""}
-                      onChange={(e) => updateItem(index, "epc", e.target.value)}
-                      placeholder="(null hoặc để trống)"
-                      className="h-9"
-                    />
-                  </div>
-
-                  <div className="flex items-end">
-                    <Button
-                      type="button"
-                      onClick={() => removeItem(index)}
-                      variant="ghost"
-                      size="sm"
-                      className="h-9 w-full text-destructive hover:text-destructive hover:bg-destructive/10"
-                      disabled={formData.items.length === 1}
+          <div className="border rounded-md overflow-hidden">
+            <div className="overflow-x-auto max-h-96 overflow-y-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/50 border-b sticky top-0">
+                  <tr>
+                    <th className="px-4 py-3 text-left w-12"></th>
+                    <th className="px-4 py-3 text-left font-semibold">ID Tài Sản</th>
+                    <th className="px-4 py-3 text-left font-semibold">Tên</th>
+                    <th className="px-4 py-3 text-left font-semibold">Mã Sản Phẩm</th>
+                    <th className="px-4 py-3 text-left font-semibold">Serial</th>
+                    <th className="px-4 py-3 text-left font-semibold">EPC</th>
+                    <th className="px-4 py-3 text-left font-semibold">Phiên In</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {availableAssets.map((asset) => (
+                    <tr
+                      key={asset.id}
+                      className={`hover:bg-muted/20 cursor-pointer ${
+                        selectedAssetIds.has(asset.id) ? "bg-accent/10" : ""
+                      }`}
+                      onClick={() => toggleAssetSelection(asset.id)}
                     >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                      <td className="px-4 py-3">
+                        <Checkbox
+                          checked={selectedAssetIds.has(asset.id)}
+                          onCheckedChange={() => toggleAssetSelection(asset.id)}
+                        />
+                      </td>
+                      <td className="px-4 py-3 font-mono text-xs">{asset.id}</td>
+                      <td className="px-4 py-3">{asset.name}</td>
+                      <td className="px-4 py-3 font-mono text-xs">{asset.prod_code}</td>
+                      <td className="px-4 py-3 font-mono">{asset.serial}</td>
+                      <td className="px-4 py-3 text-muted-foreground italic text-xs">
+                        {asset.epc || "(rỗng)"}
+                      </td>
+                      <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                        {asset.print_session}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* JSON Preview */}
-      <JSONPreview title="Request JSON" data={formData} />
+      {formData.items.length > 0 && (
+        <JSONPreview title="Request JSON" data={formData} />
+      )}
 
       {/* Submit Button */}
-      <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
+      <Button 
+        type="submit" 
+        size="lg" 
+        className="w-full" 
+        disabled={isSubmitting || formData.items.length === 0}
+      >
         <Send className="h-4 w-4 mr-2" />
-        {isSubmitting ? "Đang gửi..." : "Tạo Phiên Kiểm Kê"}
+        {isSubmitting ? "Đang gửi..." : `Tạo Phiên Kiểm Kê (${formData.items.length} tài sản)`}
       </Button>
 
       {/* Response */}
