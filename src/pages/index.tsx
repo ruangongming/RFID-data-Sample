@@ -4,6 +4,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText, PackageOpen, PackagePlus, ClipboardCheck, History } from "lucide-react";
 import { PrintJobForm } from "@/components/forms/PrintJobForm";
+import { StockOutForm } from "@/components/forms/StockOutForm";
+import { StockInForm } from "@/components/forms/StockInForm";
+import { AuditSessionForm } from "@/components/forms/AuditSessionForm";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("print");
@@ -74,7 +77,7 @@ export default function Home() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground">Stock Out Form sẽ được thêm ở đây...</p>
+                  <StockOutForm />
                 </CardContent>
               </Card>
             </TabsContent>
@@ -88,7 +91,7 @@ export default function Home() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground">Stock In Form sẽ được thêm ở đây...</p>
+                  <StockInForm />
                 </CardContent>
               </Card>
             </TabsContent>
@@ -102,7 +105,7 @@ export default function Home() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground">Audit Session Form sẽ được thêm ở đây...</p>
+                  <AuditSessionForm />
                 </CardContent>
               </Card>
             </TabsContent>
