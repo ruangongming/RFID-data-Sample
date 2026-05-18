@@ -30,10 +30,18 @@ export function StockInForm() {
   const [response, setResponse] = useState<StockInResponse | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Load available assets on mount
+  // Load available assets on mount and listen to updates
   useEffect(() => {
-    const assets = getAssets();
-    setAvailableAssets(assets);
+    const loadAssets = () => {
+      setAvailableAssets(getAssets());
+    };
+    
+    loadAssets();
+    window.addEventListener('assets_updated', loadAssets);
+    
+    return () => {
+      window.removeEventListener('assets_updated', loadAssets);
+    };
   }, []);
 
   // Update items when selection changes

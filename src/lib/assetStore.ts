@@ -40,6 +40,7 @@ function generateRandomAssetCode(prefix: string): string {
 export function saveAssets(assets: Asset[]): void {
   if (typeof window === "undefined") return;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(assets));
+  window.dispatchEvent(new Event('assets_updated'));
 }
 
 export function getAssets(): Asset[] {
@@ -61,6 +62,7 @@ export function addAssets(newAssets: Asset[]): void {
 export function clearAssets(): void {
   if (typeof window === "undefined") return;
   localStorage.removeItem(STORAGE_KEY);
+  window.dispatchEvent(new Event('assets_updated'));
 }
 
 export function generateAssets(
