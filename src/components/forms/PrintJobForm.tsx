@@ -56,6 +56,10 @@ export function PrintJobForm() {
     }));
 
     setFormData({ ...formData, labels });
+    
+    // Save to store IMMEDIATELY (LocalStorage) so other tabs can use them without waiting for API
+    addAssets(newAssets);
+    setTotalAssets(getAssets().length);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -78,12 +82,6 @@ export function PrintJobForm() {
 
       const data = await res.json();
       setResponse(data);
-      
-      // If success, save assets to store
-      if (data.respcode === "0" && assets.length > 0) {
-        addAssets(assets);
-        setTotalAssets(getAssets().length);
-      }
       
       // Save to history
       saveToHistory({
