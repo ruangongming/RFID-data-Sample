@@ -16,13 +16,13 @@ export function AuditSessionForm() {
   const [selectedAssetIds, setSelectedAssetIds] = useState<Set<string>>(new Set());
   
   const [formData, setFormData] = useState<AuditSessionRequest>({
-    session_audit: "KK-00001",
-    session_name: "",
+    session_audit: "",
+    session_name: "Phiên kiểm kê mặc định",
     method: "0",
     date_created: "",
-    user_request: "",
-    department_info: "",
-    store_info: "",
+    user_request: "admin_01",
+    department_info: "Phòng Kiểm Soát",
+    store_info: "Kho Trung Tâm",
     items: []
   });
 
@@ -31,8 +31,20 @@ export function AuditSessionForm() {
 
   // Load available assets on mount and listen to updates
   useEffect(() => {
+    // Generate sequence code based on history length
+    const storedHistory = localStorage.getItem("rfid_simulator_history");
+    let count = 0;
+    if (storedHistory) {
+      try {
+        const history = JSON.parse(storedHistory);
+        count = history.filter((h: any) => h.sessionType === "audit").length;
+      } catch (e) {}
+    }
+    const nextCode = `KK-${String(count + 1).padStart(5, '0')}`;
+
     setFormData(prev => ({
       ...prev,
+      session_audit: nextCode,
       date_created: new Date().toISOString().split("T")[0],
     }));
 
@@ -116,6 +128,16 @@ export function AuditSessionForm() {
         request: formData,
         response: data
       });
+
+      // Auto-increment sequence for next time
+      const currentNum = parseInt(formData.session_audit.replace("KK-", "")) || 0;
+      const nextCode = `KK-${String(currentNum + 1).padStart(5, '0')}`;
+      setFormData(prev => ({
+        ...prev,
+        session_audit: nextCode,
+        items: []
+      }));
+      clearSelection();
     } catch (error) {
       const errorResponse = {
         respcode: "-1",
@@ -227,12 +249,12 @@ export function AuditSessionForm() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="store_info">Cửa Hàng/Kho</Label>
+              <Label htmlFor="store_info">Kho</Label>
               <Input
                 id="store_info"
                 value={formData.store_info}
                 onChange={(e) => setFormData({ ...formData, store_info: e.target.value })}
-                placeholder="store-0001"
+                placeholder="Kho Trung Tâm"
               />
             </div>
           </div>

@@ -17,13 +17,13 @@ export function StockOutForm() {
   
   const [formData, setFormData] = useState<StockOutRequest>({
     stockout_code: "",
-    stockout_name: "",
+    stockout_name: "Phiếu xuất kho mặc định",
     created_at: "",
-    warehouse_cd: "",
-    warehouse_name: "",
-    person_cd: "",
-    person_name: "",
-    department: "",
+    warehouse_cd: "KHO-01",
+    warehouse_name: "Kho Trung Tâm",
+    person_cd: "NV-001",
+    person_name: "Nguyễn Văn A",
+    department: "Phòng CNTT",
     items: []
   });
 
@@ -32,9 +32,20 @@ export function StockOutForm() {
 
   // Load available assets on mount and listen to updates
   useEffect(() => {
+    // Generate sequence code based on history length
+    const storedHistory = localStorage.getItem("rfid_simulator_history");
+    let count = 0;
+    if (storedHistory) {
+      try {
+        const history = JSON.parse(storedHistory);
+        count = history.filter((h: any) => h.sessionType === "stockout").length;
+      } catch (e) {}
+    }
+    const nextCode = `PXK-${String(count + 1).padStart(5, '0')}`;
+
     setFormData(prev => ({
       ...prev,
-      stockout_code: "PXK-" + new Date().toISOString().split("T")[0].replace(/-/g, "") + "-0001",
+      stockout_code: nextCode,
       created_at: new Date().toISOString(),
     }));
 
@@ -107,6 +118,16 @@ export function StockOutForm() {
         request: formData,
         response: data
       });
+
+      // Auto-increment sequence for next time
+      const currentNum = parseInt(formData.stockout_code.replace("PXK-", "")) || 0;
+      const nextCode = `PXK-${String(currentNum + 1).padStart(5, '0')}`;
+      setFormData(prev => ({
+        ...prev,
+        stockout_code: nextCode,
+        items: []
+      }));
+      clearSelection();
     } catch (error) {
       const errorResponse = {
         respcode: "-1",

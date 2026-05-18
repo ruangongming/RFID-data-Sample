@@ -17,13 +17,13 @@ export function StockInForm() {
   
   const [formData, setFormData] = useState<StockInRequest>({
     stockin_code: "",
-    stockin_name: "",
+    stockin_name: "Phiếu nhập kho mặc định",
     created_at: "",
-    warehouse_cd: "",
-    warehouse_name: "",
-    sender_person_cd: "",
-    sender_person_name: "",
-    sender_department: "",
+    warehouse_cd: "KHO-01",
+    warehouse_name: "Kho Trung Tâm",
+    sender_person_cd: "NV-002",
+    sender_person_name: "Trần Văn B",
+    sender_department: "Phòng Vật Tư",
     items: []
   });
 
@@ -32,9 +32,20 @@ export function StockInForm() {
 
   // Load available assets on mount and listen to updates
   useEffect(() => {
+    // Generate sequence code based on history length
+    const storedHistory = localStorage.getItem("rfid_simulator_history");
+    let count = 0;
+    if (storedHistory) {
+      try {
+        const history = JSON.parse(storedHistory);
+        count = history.filter((h: any) => h.sessionType === "stockin").length;
+      } catch (e) {}
+    }
+    const nextCode = `PNK-${String(count + 1).padStart(5, '0')}`;
+
     setFormData(prev => ({
       ...prev,
-      stockin_code: "PNK-" + new Date().toISOString().split("T")[0].replace(/-/g, "") + "-0001",
+      stockin_code: nextCode,
       created_at: new Date().toISOString(),
     }));
 
@@ -107,6 +118,16 @@ export function StockInForm() {
         request: formData,
         response: data
       });
+
+      // Auto-increment sequence for next time
+      const currentNum = parseInt(formData.stockin_code.replace("PNK-", "")) || 0;
+      const nextCode = `PNK-${String(currentNum + 1).padStart(5, '0')}`;
+      setFormData(prev => ({
+        ...prev,
+        stockin_code: nextCode,
+        items: []
+      }));
+      clearSelection();
     } catch (error) {
       const errorResponse = {
         respcode: "-1",

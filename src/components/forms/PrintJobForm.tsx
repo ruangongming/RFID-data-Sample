@@ -14,8 +14,8 @@ import type { PrintJobRequest, PrintJobResponse } from "@/types/api";
 export function PrintJobForm() {
   const [quantity, setQuantity] = useState<number>(10);
   const [formData, setFormData] = useState<PrintJobRequest>({
-    session_print: "PE00001",
-    session_name: "",
+    session_print: "",
+    session_name: "Phiên in nhãn RFID mặc định",
     date_created: "",
     select_temp: "template01",
     rfid_enable: true,
@@ -30,8 +30,21 @@ export function PrintJobForm() {
   // Load total assets count on mount
   useEffect(() => {
     setTotalAssets(getAssets().length);
+    
+    // Generate sequence code based on history length
+    const storedHistory = localStorage.getItem("rfid_simulator_history");
+    let count = 0;
+    if (storedHistory) {
+      try {
+        const history = JSON.parse(storedHistory);
+        count = history.filter((h: any) => h.sessionType === "print_job").length;
+      } catch (e) {}
+    }
+    const nextCode = `PE${String(count + 1).padStart(5, '0')}`;
+
     setFormData(prev => ({
       ...prev,
+      session_print: nextCode,
       date_created: new Date().toISOString().split("T")[0],
     }));
   }, []);
@@ -95,6 +108,15 @@ export function PrintJobForm() {
         request: formData,
         response: data
       });
+
+      // Auto-increment sequence for next time
+      const currentNum = parseInt(formData.session_print.replace("PE", "")) || 0;
+      const nextCode = `PE${String(currentNum + 1).padStart(5, '0')}`;
+      setFormData(prev => ({
+        ...prev,
+        session_print: nextCode,
+        labels: [] // clear generated labels
+      }));
     } catch (error) {
       const errorResponse = {
         respcode: "-1",
