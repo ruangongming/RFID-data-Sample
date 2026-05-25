@@ -42,7 +42,12 @@ const nextConfig = {
       },
     ],
   },
-  allowedDevOrigins: ["*.daytona.work", "*.softgen.dev"],
+  allowedDevOrigins: [
+    "poc-qlts.hysmart.app",
+    "localhost:3000",
+    "*.daytona.work",
+    "*.softgen.dev",
+  ],
 };
 
 export default nextConfig;
